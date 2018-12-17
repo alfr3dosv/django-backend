@@ -3,16 +3,15 @@ Django settings for cetacea project.
 """
 
 import os
-import environ #environment variables
+import environ  # environment variables
 
-env = environ.Env(DEBUG = (bool, False),)
+env = environ.Env(DEBUG=(bool, False), )
 
-#reading .env file
+# reading .env file
 environ.Env.read_env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
@@ -33,11 +32,16 @@ DJANGO_APPS = [
 
 # Third party applications
 THIRD_PARTY_APPS = [
-    'social_django',        # Social Auth
-    'graphene_django',      # GraphQL
-    'corsheaders',          # Necessary for corsheaders
-    'phonenumber_field',    # Necessary for handling phone numbers
-    'storages',             # Needed for uploading media files to Amazon S3
+    'graphene_django',  # GraphQL
+    'corsheaders',  # Necessary for corsheaders
+    'phonenumber_field',  # Necessary for handling phone numbers
+    'storages',  # Needed for uploading media files to Amazon S3
+    'rest_framework', # Needed for authentication, authorization
+    'rest_framework.authtoken', # Autorization headers
+    'social_django', # Social Auth
+    'rest_social_auth', # Rest social auth
+    'oauth2_provider', # Dependence for rest_social_auth
+    'rest_framework_social_oauth2', # Dependence for rest_social_auth
 ]
 
 # Local applications
@@ -50,15 +54,25 @@ LOCAL_APPS = [
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.BasicAuthentication',
+    ]
+}
+
 MIDDLEWARE = [
+    # CORS
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    #CORS
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    #JWT
+    # JWT
     'graphql_jwt.middleware.JSONWebTokenMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -102,7 +116,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
 
@@ -115,7 +128,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
@@ -131,13 +143,13 @@ GRAPHENE = {
 }
 
 AUTHENTICATION_BACKENDS = [
-    # Default
-    'django.contrib.auth.backends.ModelBackend',
-    #Graphql JWT
+    # Graphql JWT
     'graphql_jwt.backends.JSONWebTokenBackend',
     # Social Auth
     'social_core.backends.google.GoogleOAuth2',
     'social_core.backends.facebook.FacebookOAuth2',
+    # Default
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 SOCIAL_AUTH_PIPELINE = [
@@ -186,7 +198,9 @@ SOCIAL_AUTH_PIPELINE = [
 ]
 
 CORS_ORIGIN_ALLOW_ALL = True
-
+CORS_ORIGIN_WHITELIST = (
+    '127.0.0.1:3333'
+)
 # Sendgrid email configuration
 from .components.sendgrid import *
 
